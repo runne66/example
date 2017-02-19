@@ -112,7 +112,7 @@ int praseStrToData(char *str)
 		return -1;
 	}
 	len = strlen(str);
-	//�����β
+	//检查首尾
 	/*
 	if(*str != '?' || str[len-1] != '!') {
 		return -1;
@@ -130,12 +130,12 @@ int praseStrToData(char *str)
 
 
 
-void creat_server_sockfd4(int *sockfd, struct sockaddr_in *local, int portnum){
+void creat_server_sockfd6(int *sockfd, struct sockaddr_in6 *local, int portnum){
 	int err;
 	int optval = YES;
 	int nodelay = YES;
 
-	*sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	*sockfd = socket6(AF_INET6, SOCK_STREAM, 0);
 	if(*sockfd < 0){
 		perror("socket");
 		exit(EXIT_FAILURE);
@@ -150,12 +150,12 @@ void creat_server_sockfd4(int *sockfd, struct sockaddr_in *local, int portnum){
 	}
 
 
-	memset(local, 0, sizeof(struct sockaddr_in));
-	local->sin_family = AF_INET;
-	local->sin_addr.s_addr = htonl(INADDR_ANY);
-	local->sin_port = htons(portnum);
+	memset(local, 0, sizeof(struct sockaddr_in6));
+	local->sin6_family = AF_INET6;
+	local->sin6_addr = in6addr_any;
+	local->sin6_port = htons(portnum);
 
-	err = bind(*sockfd, (struct sockaddr*)local, sizeof(struct sockaddr_in));
+	err = bind(*sockfd, (struct sockaddr*)local, sizeof(struct sockaddr_in6));
 	if(err < 0){
 		perror("bind");
 		exit(EXIT_FAILURE);
@@ -167,15 +167,15 @@ void creat_server_sockfd4(int *sockfd, struct sockaddr_in *local, int portnum){
 	}
 
 }
-//创建服务器
+//鍒涘缓鏈嶅姟鍣�
 void creatserver(struct argument *p){
 	char addrstr[100];
 	int serverfd;
-	struct sockaddr_in local_addr_s;
-	struct sockaddr_in from;
+	struct sockaddr_in6 local_addr_s;
+	struct sockaddr_in6 from;
 	unsigned int len = sizeof(from);
 
-	creat_server_sockfd4(&serverfd,&local_addr_s,p->port);
+	creat_server_sockfd6(&serverfd,&local_addr_s,p->port);
 
 	while(1)
 	{
@@ -187,13 +187,13 @@ void creatserver(struct argument *p){
 		struct timeval time;
 		gettimeofday(&time, NULL);
 		printf("time:%lds, %ldus\n",time.tv_sec,time.tv_usec);
-		printf("a IPv4 client from:%s\n",inet_ntop(AF_INET, &(from.sin_addr), addrstr, INET_ADDRSTRLEN));
+		printf("a IPv6 client from:%s\n",inet_ntop(AF_INET6, &(from.sin_addr), addrstr, INET6_ADDRSTRLEN));
 	}
 
 }
 
 
-//读取数据
+//璇诲彇鏁版嵁
 int ReadData(int fd,char *p){
 	char c;
 	int ret = 0;
@@ -205,7 +205,7 @@ int ReadData(int fd,char *p){
 		return 0;
 	}
 	else if(ret == 0){
-		printf("连接断开\n");
+		printf("杩炴帴鏂紑\n");
 		
 		return -1;
 	}
@@ -269,7 +269,7 @@ void* soureDataPrase(void *arg)
 			ret = select(maxfd, &readfd, NULL, NULL, &timeout);
 			if(ret == -1){
 				perror("select");
-			}else if(ret > 0 && FD_ISSET(recvDataFD.fd, &readfd)){ //开始读取数据，并转发
+			}else if(ret > 0 && FD_ISSET(recvDataFD.fd, &readfd)){ //寮�濮嬭鍙栨暟鎹紝骞惰浆鍙�
 				//printf("ret = %d\n",ret);
 				p = (char *)malloc(sizeof(char) * 1000);
 				num = ReadData(recvDataFD.fd, p);
@@ -284,7 +284,7 @@ void* soureDataPrase(void *arg)
 							close(sendOriginalDataFD.fd);
 						}
 						else if(ret_send == 0)
-							printf("���ӶϿ�\n");
+							printf("连接断开\n");
 						else
 							printf("write sendOriginalDataFD_fd! ret_send=%d\n",ret_send);
 					}
@@ -292,7 +292,7 @@ void* soureDataPrase(void *arg)
 					//client disconnect
 					FD_CLR(recvDataFD.fd, &readfd);
 					printf("Client disconnect!\n");				
-					//close(recvDataFD.fd);  //�ر�socket����   
+					//close(recvDataFD.fd);  //关闭socket连接   
 		      recvDataFD.fd=0;
 				}
 				free(p);
