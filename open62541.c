@@ -21697,11 +21697,13 @@ ServerNetworkLayerTCP_add(ServerNetworkLayerTCP *layer, UA_Int32 newsockfd) {
     if(!c)
         return UA_STATUSCODE_BADINTERNALERROR;
 
-    struct sockaddr_in addr;
-    socklen_t addrlen = sizeof(struct sockaddr_in);
+    struct sockaddr_in6 addr;
+    char addrstr[100];
+    socklen_t addrlen = sizeof(struct sockaddr_in6);
     getpeername(newsockfd, (struct sockaddr*)&addr, &addrlen);
     UA_LOG_INFO(layer->logger, UA_LOGCATEGORY_NETWORK, "New Connection %i over TCP from %s:%d",
-                newsockfd, inet_ntoa(addr.sin6_addr), ntohs(addr.sin6_port));
+                newsockfd, inet_ntop(AF_INET6, &(addr.sin6_addr), addrstr, INET6_ADDRSTRLEN),
+		ntohs(addr.sin6_port));
     UA_Connection_init(c);
     c->sockfd = newsockfd;
     c->handle = layer;
@@ -21758,8 +21760,9 @@ ServerNetworkLayerTCP_start(UA_ServerNetworkLayer *nl, UA_Logger logger) {
     }
 #endif
     const struct sockaddr_in6 serv_addr =
-        {.sin6_family = AF_INET, .sin6_addr.s6_addr = IN6ADDR_ANY,
-         .sin6_port = htons(layer->port), .sin6_zero = {0}};
+        {.sin6_family = AF_INET, .sin6_addr.s6_addr = in6addr_any,
+         .sin6_port = htons(layer->port)//, .sin6_zero = {0}
+	 };
     int optval = 1;
     if(setsockopt(layer->serversockfd, SOL_SOCKET,
                   SO_REUSEADDR, (const char *)&optval, sizeof(optval)) == -1) {
