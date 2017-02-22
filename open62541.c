@@ -21701,7 +21701,7 @@ ServerNetworkLayerTCP_add(ServerNetworkLayerTCP *layer, UA_Int32 newsockfd) {
     socklen_t addrlen = sizeof(struct sockaddr_in);
     getpeername(newsockfd, (struct sockaddr*)&addr, &addrlen);
     UA_LOG_INFO(layer->logger, UA_LOGCATEGORY_NETWORK, "New Connection %i over TCP from %s:%d",
-                newsockfd, inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+                newsockfd, inet_ntoa(addr.sin6_addr), ntohs(addr.sin6_port));
     UA_Connection_init(c);
     c->sockfd = newsockfd;
     c->handle = layer;
@@ -21746,20 +21746,20 @@ ServerNetworkLayerTCP_start(UA_ServerNetworkLayer *nl, UA_Logger logger) {
     
     /* open the server socket */
 #ifdef _WIN32
-    if((layer->serversockfd = socket(PF_INET, SOCK_STREAM,0)) == (UA_Int32)INVALID_SOCKET) {
+    if((layer->serversockfd = socket(PF_INET6, SOCK_STREAM,0)) == (UA_Int32)INVALID_SOCKET) {
         UA_LOG_WARNING(layer->logger, UA_LOGCATEGORY_NETWORK, "Error opening socket, code: %d",
                        WSAGetLastError());
         return UA_STATUSCODE_BADINTERNALERROR;
     }
 #else
-    if((layer->serversockfd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    if((layer->serversockfd = socket(PF_INET6, SOCK_STREAM, 0)) < 0) {
         UA_LOG_WARNING(layer->logger, UA_LOGCATEGORY_NETWORK, "Error opening socket");
         return UA_STATUSCODE_BADINTERNALERROR;
     }
 #endif
-    const struct sockaddr_in serv_addr =
-        {.sin_family = AF_INET, .sin_addr.s_addr = INADDR_ANY,
-         .sin_port = htons(layer->port), .sin_zero = {0}};
+    const struct sockaddr_in6 serv_addr =
+        {.sin6_family = AF_INET, .sin6_addr.s6_addr = IN6ADDR_ANY,
+         .sin6_port = htons(layer->port), .sin6_zero = {0}};
     int optval = 1;
     if(setsockopt(layer->serversockfd, SOL_SOCKET,
                   SO_REUSEADDR, (const char *)&optval, sizeof(optval)) == -1) {
@@ -21798,7 +21798,7 @@ ServerNetworkLayerTCP_getJobs(UA_ServerNetworkLayer *nl, UA_Job **jobs, UA_UInt1
     /* accept new connections (can only be a single one) */
     if(UA_fd_isset(layer->serversockfd, &fdset)) {
         resultsize--;
-        struct sockaddr_in cli_addr;
+        struct sockaddr_in6 cli_addr;
         socklen_t cli_len = sizeof(cli_addr);
         int newsockfd = accept(layer->serversockfd, (struct sockaddr *) &cli_addr, &cli_len);
         int i = 1;
