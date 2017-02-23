@@ -21996,9 +21996,9 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
     WSADATA wsaData;
     wVersionRequested = MAKEWORD(2, 2);
     WSAStartup(wVersionRequested, &wsaData);
-    if((connection.sockfd = socket(PF_INET, SOCK_STREAM,0)) == (UA_Int32)INVALID_SOCKET) {
+    if((connection.sockfd = socket(PF_INET6, SOCK_STREAM,0)) == (UA_Int32)INVALID_SOCKET) {
 #else
-    if((connection.sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+    if((connection.sockfd = socket(AF_INET6, SOCK_STREAM, 0)) == -1) {
 #endif
         UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "Could not create socket");
         return connection;
@@ -22008,11 +22008,11 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
         UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "DNS lookup of %s failed", hostname);
         return connection;
     }
-    struct sockaddr_in server_addr;
+    struct sockaddr_in6 server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
-    memcpy((char *)&server_addr.sin_addr.s_addr, (char *)server->h_addr_list[0], (size_t)server->h_length);
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(port);
+    memcpy((char *)&server_addr.sin6_addr.s6_addr, (char *)server->h_addr_list[0], (size_t)server->h_length);
+    server_addr.sin6_family = AF_INET6;
+    server_addr.sin6_port = htons(port);
     connection.state = UA_CONNECTION_OPENING;
     if(connect(connection.sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
         ClientNetworkLayerClose(&connection);
