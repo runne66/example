@@ -21760,7 +21760,7 @@ ServerNetworkLayerTCP_start(UA_ServerNetworkLayer *nl, UA_Logger logger) {
     }
 #endif
     const struct sockaddr_in6 serv_addr =
-        {.sin6_family = AF_INET, .sin6_addr.s6_addr = in6addr_any,
+        {.sin6_family = AF_INET6, .sin6_addr = in6addr_any,
          .sin6_port = htons(layer->port)//, .sin6_zero = {0}
 	 };
     int optval = 1;
