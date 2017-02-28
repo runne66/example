@@ -21971,9 +21971,11 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
         return connection;
     }
 
-    UA_UInt16 portpos = 9;
+   // UA_UInt16 portpos = 9;
+	UA_UInt16 portpos = urlLength-1;
     UA_UInt16 port;
-    for(port = 0; portpos < urlLength-1; portpos++) {
+   // for(port = 0; portpos < urlLength-1; portpos++) {
+	for(port = 0; portpos > 9; portpos--) {
         if(endpointUrl[portpos] == ':') {
             char *endPtr = NULL;
             unsigned long int tempulong = strtoul(&endpointUrl[portpos+1], &endPtr, 10);
@@ -22010,7 +22012,7 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
     }
     struct sockaddr_in6 server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
-    memcpy((char *)&server_addr.sin6_addr.s6_addr, (char *)server->h_addr_list[0], (size_t)server->h_length);
+    memcpy((char *)&server_addr.sin6_addr, (char *)server->h_addr_list[0], (size_t)server->h_length);
     server_addr.sin6_family = AF_INET6;
     server_addr.sin6_port = htons(port);
     connection.state = UA_CONNECTION_OPENING;
