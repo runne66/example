@@ -21971,11 +21971,9 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
         return connection;
     }
 
-    //UA_UInt16 portpos = 9;
-		UA_UInt16 portpos = urlLength-1;
+    UA_UInt16 portpos = 9;
     UA_UInt16 port;
-		for(port = 0; portpos > 9 ;portpos--){
-   // for(port = 0; portpos < urlLength-1; portpos++) {
+    for(port = 0; portpos < urlLength-1; portpos++) {
         if(endpointUrl[portpos] == ':') {
             char *endPtr = NULL;
             unsigned long int tempulong = strtoul(&endpointUrl[portpos+1], &endPtr, 10);
