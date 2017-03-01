@@ -22005,14 +22005,14 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
         UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "Could not create socket");
         return connection;
     }
-	
-	struct addrinfo *answer, hint;  
-	memset(&hint,0, sizeof(hint));
-	hint.ai_family = AF_INET6;
-	hint.ai_socktype = SOCK_STREAM;
-//	hint.ai_protocol = IPPROTO_TCP;
-	hint.ai_flags=AI_CANONNAME;
-	int ret = getaddrinfo(hostname, port, &hint, &answer);	
+	char ports[]="16664";
+	struct addrinfo *answer, hints;  
+	memset(&hints,0, sizeof(hints));
+	hints.ai_family = AF_INET6;
+	hints.ai_socktype = SOCK_STREAM;
+//	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_flags=AI_CANONNAME;
+	int ret = getaddrinfo(hostname, ports, &hints, &answer);	
 	if(ret != 0) {
 		UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "DNS lookup of %s failed", hostname);
         return connection;
