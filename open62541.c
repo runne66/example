@@ -22006,43 +22006,23 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
         return connection;
     }
 	char str[10];
-	sprintf(str,"%d",port);
-//	char ports[]="16664";
-	struct addrinfo *answer, hints;  
-	memset(&hints,0, sizeof(hints));
-	hints.ai_family = AF_INET6;
-	hints.ai_socktype = SOCK_STREAM;
-//	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags=AI_CANONNAME;
-	int ret = getaddrinfo(hostname, str, &hints, &answer);	
-	if(ret != 0) {
-		UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "DNS lookup of %s failed", hostname);
-        return connection;
-    }
-	connection.state = UA_CONNECTION_OPENING;
-    if(connect(connection.sockfd, answer->ai_addr, answer->ai_addrlen) < 0) {
-        ClientNetworkLayerClose(&connection);
-        UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "Connection failed");
-        return connection;
-    }
-	
-/*  struct hostent *server = gethostbyname(hostname);
-    if(!server) {
-        UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "DNS lookup of %s failed", hostname);
-        return connection;
-    }
+
     struct sockaddr_in6 server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
-    memcpy((char *)&server_addr.sin6_addr, (char *)server->h_addr_list[0], (size_t)server->h_length);
     server_addr.sin6_family = AF_INET6;
     server_addr.sin6_port = htons(port);
+	if ( inet_pton(AF_INET6, hostname, &server_addr.sin6_addr) < 0 ) {      
+        exit(errno);
+    }
+    printf("address created/n");
+	
     connection.state = UA_CONNECTION_OPENING;
     if(connect(connection.sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
         ClientNetworkLayerClose(&connection);
         UA_LOG_WARNING((*logger), UA_LOGCATEGORY_NETWORK, "Connection failed");
         return connection;
     }
-*/
+
 #ifdef SO_NOSIGPIPE
     int val = 1;
     if(setsockopt(connection.sockfd, SOL_SOCKET, SO_NOSIGPIPE, (void*)&val, sizeof(val)) < 0) {
