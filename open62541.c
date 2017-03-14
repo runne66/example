@@ -22014,7 +22014,6 @@ UA_ClientConnectionTCP(UA_ConnectionConfig localConf, const char *endpointUrl, U
 	if ( inet_pton(AF_INET6, hostname, &server_addr.sin6_addr) < 0 ) {      
         exit(errno);
     }
-    printf("address created/n");
 	
     connection.state = UA_CONNECTION_OPENING;
     if(connect(connection.sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
